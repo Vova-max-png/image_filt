@@ -6,6 +6,7 @@ use image::{GenericImageView, ImageBuffer, RgbaImage,};
 pub enum FilterType {
     Darker,
     Lighter,
+    Blur,
 }
 
 pub struct Filter {
@@ -40,32 +41,13 @@ impl Filter {
     pub fn filter(&mut self) -> &mut Self {
         match self.filter_type {
             FilterType::Darker => {
-                let mut original_pixels = Vec::new();
-                let mut cursor = 0;
-                for pixel in self.img.as_mut().unwrap().pixels() {
-                    original_pixels.push(pixel.2);
-                }
-                for pixel in self.buffer.as_mut().unwrap().enumerate_pixels_mut() {
-                    original_pixels[cursor][0] = (original_pixels[cursor][0] as f32 * 0.7) as u8;
-                    original_pixels[cursor][1] = (original_pixels[cursor][1] as f32 * 0.7) as u8;
-                    original_pixels[cursor][2] = (original_pixels[cursor][2] as f32 * 0.7) as u8;
-                    *pixel.2 = original_pixels[cursor];
-                    cursor+=1;
-                }
+                self.light_filter(0.7);
             },
             FilterType::Lighter => {
-                let mut original_pixels = Vec::new();
-                let mut cursor = 0;
-                for pixel in self.img.as_mut().unwrap().pixels() {
-                    original_pixels.push(pixel.2);
-                }
-                for pixel in self.buffer.as_mut().unwrap().enumerate_pixels_mut() {
-                    original_pixels[cursor][0] = (original_pixels[cursor][0] as f32 * 1.3) as u8;
-                    original_pixels[cursor][1] = (original_pixels[cursor][1] as f32 * 1.3) as u8;
-                    original_pixels[cursor][2] = (original_pixels[cursor][2] as f32 * 1.3) as u8;
-                    *pixel.2 = original_pixels[cursor];
-                    cursor+=1;
-                }
+                self.light_filter(1.3);
+            },
+            FilterType::Blur => {
+                
             }
         }
         self
@@ -73,5 +55,20 @@ impl Filter {
 
     pub fn save(&mut self, path: String) {
         self.buffer.as_mut().unwrap().save(path).unwrap();
+    }
+
+    fn light_filter(&mut self, offset: f32) {
+        let mut original_pixels = Vec::new();
+        let mut cursor = 0;
+        for pixel in self.img.as_mut().unwrap().pixels() {
+            original_pixels.push(pixel.2);
+        }
+        for pixel in self.buffer.as_mut().unwrap().enumerate_pixels_mut() {
+            original_pixels[cursor][0] = (original_pixels[cursor][0] as f32 * offset) as u8;
+            original_pixels[cursor][1] = (original_pixels[cursor][1] as f32 * offset) as u8;
+            original_pixels[cursor][2] = (original_pixels[cursor][2] as f32 * offset) as u8;
+            *pixel.2 = original_pixels[cursor];
+            cursor+=1;
+        }
     }
 }
