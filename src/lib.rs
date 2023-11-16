@@ -17,23 +17,23 @@ impl Filter {
         }
     }
 
-    pub fn open(&mut self) -> &mut Self {
+    pub fn open(&mut self) -> Result<&mut Self, String> {
         if !self.path.clone().unwrap().to_string().ends_with(".png") {
-            panic!("File needs to end with .png");
+            return Err("File needs to end with .png".to_string());
         }
         let img = image::open(self.path.as_mut().unwrap()).unwrap();
         let (width, height) = img.dimensions();
         self.img = Some(img);
         let buffer = ImageBuffer::new(width, height);
         self.buffer = Some(buffer);
-        self
+        Ok(self)
     }
 
     pub fn save(&mut self, path: String) {
         self.buffer.as_mut().unwrap().save(path).unwrap();
     }
 
-    pub fn light_filter(&mut self, offset: f32) -> &mut Self {
+    pub fn light_filter(&mut self, offset: f32) -> Result<&mut Self, String> {
         let mut original_pixels = Vec::new();
         let mut cursor = 0;
         for pixel in self.img.as_mut().unwrap().pixels() {
@@ -46,10 +46,13 @@ impl Filter {
             *pixel.2 = original_pixels[cursor];
             cursor+=1;
         }
-        self
+        Ok(self)
     }
 
-    pub fn box_blur(&mut self, offset: u32) -> &mut Self {
+    pub fn box_blur(&mut self, offset: u32) -> Result<&mut Self, String> {
+        if offset == 0 {
+            return Err("Offset needs to be above zero".to_string());
+        }
         let mut original_pixels = Vec::new();
         let mut cursor = 0;
         let mut red_sum = 0;
@@ -60,7 +63,7 @@ impl Filter {
         }
         for pixel in self.buffer.as_mut().unwrap().enumerate_pixels_mut() {
             if original_pixels.len() - cursor == (offset as i32).try_into().unwrap() {
-                return self;
+                return Ok(self);
             }
             for i in 0..offset as usize {
                 red_sum += original_pixels[cursor + i][0] / offset as u8;
@@ -76,6 +79,6 @@ impl Filter {
             green_sum = 0;
             blue_sum = 0;
         }
-        self
+        Ok(self)
     }
 }
