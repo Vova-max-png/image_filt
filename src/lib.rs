@@ -1,27 +1,18 @@
 extern crate image;   
                                                                                
-use image::{GenericImageView, ImageBuffer, RgbaImage,};
-
-#[allow(dead_code)]
-pub enum FilterType {
-    Darker,
-    Lighter,
-    Blur,
-}
+use image::{GenericImageView, ImageBuffer, RgbaImage};
 
 pub struct Filter {
     buffer: Option<RgbaImage>,
     path: Option<String>,
-    filter_type: FilterType,
     img: Option<image::DynamicImage>,
 }
 
 impl Filter {
-    pub fn new(path: &str, typ: FilterType) -> Self {
+    pub fn new(path: &str) -> Self {
         Self {
             buffer: None,
             path: Some(path.to_string()),
-            filter_type: typ,
             img: None,
         }
     }
@@ -38,26 +29,11 @@ impl Filter {
         self
     }
 
-    pub fn filter(&mut self) -> &mut Self {
-        match self.filter_type {
-            FilterType::Darker => {
-                self.light_filter(0.7);
-            },
-            FilterType::Lighter => {
-                self.light_filter(1.3);
-            },
-            FilterType::Blur => {
-                
-            }
-        }
-        self
-    }
-
     pub fn save(&mut self, path: String) {
         self.buffer.as_mut().unwrap().save(path).unwrap();
     }
 
-    fn light_filter(&mut self, offset: f32) {
+    pub fn light_filter(&mut self, offset: f32) -> &mut Self {
         let mut original_pixels = Vec::new();
         let mut cursor = 0;
         for pixel in self.img.as_mut().unwrap().pixels() {
@@ -70,5 +46,36 @@ impl Filter {
             *pixel.2 = original_pixels[cursor];
             cursor+=1;
         }
+        self
+    }
+
+    pub fn box_blur(&mut self, offset: u32) -> &mut Self {
+        let mut original_pixels = Vec::new();
+        let mut cursor = 0;
+        let mut red_sum = 0;
+        let mut green_sum = 0;
+        let mut blue_sum = 0;
+        for pixel in self.img.as_mut().unwrap().pixels() {
+            original_pixels.push(pixel.2);
+        }
+        for pixel in self.buffer.as_mut().unwrap().enumerate_pixels_mut() {
+            if original_pixels.len() - cursor == (offset as i32).try_into().unwrap() {
+                return self;
+            }
+            for i in 0..offset as usize {
+                red_sum += original_pixels[cursor + i][0] / offset as u8;
+                green_sum += original_pixels[cursor + i][1] / offset as u8;
+                blue_sum += original_pixels[cursor + i][2] / offset as u8;
+            }
+            original_pixels[cursor][0] = red_sum as u8;
+            original_pixels[cursor][1] = green_sum as u8;
+            original_pixels[cursor][2] = blue_sum as u8;
+            *pixel.2 = original_pixels[cursor];
+            cursor+=1;
+            red_sum = 0;
+            green_sum = 0;
+            blue_sum = 0;
+        }
+        self
     }
 }
