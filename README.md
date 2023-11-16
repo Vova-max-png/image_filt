@@ -10,19 +10,22 @@
 
 ### Make the picture lighter or darker:
 ```rust
-// If you wanna to make the picture darker, use FilterType::Darker instead
-// of FilterType::Lighter
-Filter::new("Path to the original file", FilterType::Lighter)
-        .open()
-        .filter()
-        .save("Path where save the modified image".to_string());
+// If you wanna to make the picture lighter or darker, use .light_filter(offset)
+Filter::new("Path to the file to modify")
+    .open()
+    .unwrap()
+    .light_filter(1.3) // Lighter on 30%
+    .unwrap()
+    .save("Path to the file to save".to_string());
 ```
 
 ### Apply blur to the image:
 ```Rust
-// As you see we use FilterType::Blur there to apply blur.
-Filter::new("Path to the original file", FilterType::Blur)
-        .open()
-        .filter()
-        .save("Path where save the modified image".to_string());
+// As you see we use .box_blur(offset) to do that
+Filter::new("Path to the file to modify")
+    .open()
+    .unwrap()
+    .box_blur(5) // 5 is an example
+    .unwrap()
+    .save("Path to the file to save".to_string());
 ```
