@@ -66,9 +66,9 @@ impl Filter {
                 return Ok(self);
             }
             for i in 0..offset as usize {
-                red_sum += original_pixels[cursor + i][0] / offset as u8;
-                green_sum += original_pixels[cursor + i][1] / offset as u8;
-                blue_sum += original_pixels[cursor + i][2] / offset as u8;
+                red_sum += original_pixels[cursor + offset as usize - i][0] / offset as u8;
+                green_sum += original_pixels[cursor + offset as usize - i][1] / offset as u8;
+                blue_sum += original_pixels[cursor + offset as usize - i][2] / offset as u8;
             }
             original_pixels[cursor][0] = red_sum as u8;
             original_pixels[cursor][1] = green_sum as u8;
